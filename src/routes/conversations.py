@@ -72,7 +72,7 @@ async def post_conversations(
 
 # Middlewares
 
-def authorize_conversation_info(
+async def authorize_conversation_info(
         conversation_id: int,
         user: User = Depends(auth_required),
         session: Session = Depends(session_factory)):

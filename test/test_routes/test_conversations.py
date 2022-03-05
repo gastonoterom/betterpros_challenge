@@ -1,13 +1,13 @@
 from unittest import IsolatedAsyncioTestCase
-
-from fastapi import HTTPException
-from src.database.crud.conversations import insert_conversation
-from src.routes.conversations import handle_convo_members, parse_conversation, post_conversations, validate_conversation
-from src.routes.schemas.conversations import ConversationData
 from test.mocks.database import get_mock_session
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from src.database.crud.conversations import insert_conversation
+from src.routes.conversations import authorize_conversation_info, get_conversation, \
+    handle_convo_members, parse_conversation, post_conversations, validate_conversation
+from src.routes.schemas.conversations import ConversationData
 from src.database.crud.users import insert_user
-from src.database.models import Conversation, User
+from src.database.models import Conversation, User, UserAndConversation
 from src.libs.crypto import hash_text
 
 
@@ -96,3 +96,29 @@ class TestUsers(IsolatedAsyncioTestCase):
     async def test_post_conversations(self):
         conversation_data = await post_conversations(Conversation(type=0), [1, 3], self.session)
         self.assertTrue(conversation_data["conversation_id"] == 3)
+
+    async def test_authorize_conversation_info(self):
+        # Test non existant conversation
+        with self.assertRaises(HTTPException):
+            await authorize_conversation_info(100, User(id=1), self.session)
+
+        # Test trying to enter non authorized conversation
+        with self.assertRaises(HTTPException):
+            await authorize_conversation_info(1, User(id=3), self.session)
+
+        conversation = await authorize_conversation_info(1, User(id=1), self.session)
+
+        self.assertTrue(conversation.id == 1)
+
+    async def test_get_conversation(self):
+
+        conversation = Conversation(
+            id=1, title="test", type=0, users=[UserAndConversation(user_id=1),
+                                               UserAndConversation(user_id=2)])
+
+        conversation_data = await get_conversation(conversation)
+
+        self.assertEqual(conversation_data["id"], 1)
+        self.assertEqual(conversation_data["title"], "test")
+        self.assertEqual(conversation_data["type"], "p2p")
+        self.assertEqual(len(conversation_data["members"]), 2)

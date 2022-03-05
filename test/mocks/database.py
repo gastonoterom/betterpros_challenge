@@ -4,7 +4,6 @@ from src.database.models import create_tables
 
 
 def get_mock_session():
-    # In memory sql database for challenge purposes
     test_engine = create_engine("sqlite+pysqlite:///:memory:",
                                 connect_args={"check_same_thread": False}, echo=False, future=True)
 

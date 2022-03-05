@@ -9,7 +9,12 @@ def p2p_convo_exists(id_1: int, id_2: int, session: Session) -> bool:
 
 
 def get_p2p_conversation(id_1: int, id_2: int, session: Session) -> Optional[Conversation]:
-    """Get a p2p conversation between two users by id, returns None if not found"""
+    """Get a p2p conversation between two users by id, returns None if not found
+
+    Raises ValueError if both ids are the same"""
+    if id_1 == id_2:
+        raise ValueError("Peer ids can't be the same")
+
     return session.query(Conversation).filter(Conversation.users.any(user_id=id_1)) \
         .filter(Conversation.users.any(user_id=id_2)).filter_by(type=0).first()
 

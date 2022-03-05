@@ -96,4 +96,4 @@ class TestUsers(IsolatedAsyncioTestCase):
 
         # user requests data of a non existant peer
         with self.assertRaises(HTTPException):
-            peer_data_2 = await get_user(100, myself, self.session)
+            await get_user(100, myself, self.session)

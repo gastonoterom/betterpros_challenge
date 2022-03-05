@@ -8,7 +8,6 @@ import jwt
 # public-key cryptography
 
 TOKEN_SECRET = token_urlsafe(40)
-ALGORITHM = "HS256"
 
 
 def hash_text(text: str) -> str:
@@ -21,16 +20,16 @@ def validate_hash(text: str, hashed_text: str) -> bool:
     return bcrypt.checkpw(text.encode('utf-8'), hashed_text.encode('utf-8'))
 
 
-def generate_jwt(user_id: int):
+def generate_jwt(user_id: int, token_secret: str):
     """Generates an access token for a user"""
-    return jwt.encode({"user_id": user_id}, TOKEN_SECRET, algorithm=ALGORITHM)
+    return jwt.encode({"user_id": user_id}, token_secret, algorithm="HS256")
 
 
-def decode_jwt(token: str) -> Optional[dict]:
+def decode_jwt(token: str, token_secret: str) -> Optional[dict]:
     """Validates and decodes a jwt, returns None if jwt could not be decoded"""
 
     try:
-        return jwt.decode(token, TOKEN_SECRET, algorithms=[ALGORITHM])
+        return jwt.decode(token, token_secret, algorithms=["HS256"])
 
     except jwt.exceptions.DecodeError:
         return None

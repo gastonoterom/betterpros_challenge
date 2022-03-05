@@ -3,9 +3,9 @@ from sqlalchemy.orm import relationship
 from src.database.db_engine import Base, engine
 
 
-def create_tables():
+def create_tables(db_engine=engine):
     """Create the modeled tables in the database, testing only"""
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=db_engine)
 
 
 class UserAndConversation(Base):

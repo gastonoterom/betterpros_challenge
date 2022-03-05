@@ -5,14 +5,16 @@ from src.database.crud.users import get_user_by_email, get_user_by_id, insert_us
 from src.database.session_factory import session_factory
 from src.database.models import User
 from src.routes.auth.token_middleware import auth_required
-from src.routes.schemas.users import SigninData, SignupData
-from src.libs.crypto import hash_text, generate_jwt, validate_hash
+from src.routes.schemas.users import SigninData, SignupData, SignupSigninReturn, UserData
+from src.libs.crypto import TOKEN_SECRET, hash_text, generate_jwt, validate_hash
 
 router = APIRouter()
 
 
-@router.post("/signup")
-async def signup(signup_data: SignupData, session: Session = Depends(session_factory)):
+@router.post("/signup", response_model=SignupSigninReturn)
+async def signup(signup_data: SignupData,
+                 session: Session = Depends(session_factory),
+                 token_secret: str = TOKEN_SECRET):
 
     if user_exists(signup_data.email, session):
         raise HTTPException(
@@ -23,11 +25,14 @@ async def signup(signup_data: SignupData, session: Session = Depends(session_fac
 
     insert_user(user, session)
 
-    return {"user_id": user.id, "jwt": generate_jwt(user.id)}
+    return {"user_id": user.id, "jwt": generate_jwt(user.id, token_secret)}
 
 
-@router.post("/login")
-async def login(signin_data: SigninData, session: Session = Depends(session_factory)):
+@router.post("/login", response_model=SignupSigninReturn)
+async def login(
+        signin_data: SigninData,
+        session: Session = Depends(session_factory),
+        token_secret: str = TOKEN_SECRET):
 
     user: User = get_user_by_email(signin_data.email, session)
 
@@ -35,10 +40,10 @@ async def login(signin_data: SigninData, session: Session = Depends(session_fact
         raise HTTPException(
             status_code=401, detail="error: invalid username or password")
 
-    return {"user_id": user.id, "jwt": generate_jwt(user.id)}
+    return {"user_id": user.id, "jwt": generate_jwt(user.id, token_secret)}
 
 
-@router.get("/user/{user_id}")
+@router.get("/user/{user_id}", response_model=UserData)
 async def get_user(
         user_id: int,
         user: User = Depends(auth_required),
@@ -54,8 +59,8 @@ async def get_user(
             status_code=404, detail="User not found")
 
     response = {
-        "email": user.email,
-        "username": user.username,
+        "email": peer.email,
+        "username": peer.username,
     }
 
     if convo_in_common := get_p2p_conversation(user.id, peer.id, session):

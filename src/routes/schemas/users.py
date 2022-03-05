@@ -43,18 +43,3 @@ class SignupSigninReturn(BaseModel):
                 "jwt": "eyJ0eXAiOiJKV1Qi...",
             }
         }
-
-
-class UserData(BaseModel):
-    email: str
-    username: str
-    conversation_id: Optional[int]
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "email": "mail@gastonotero.com",
-                "username": "g4st0n",
-                "conversation_id": 4
-            }
-        }

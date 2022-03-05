@@ -5,8 +5,8 @@ from src.database.crud.users import get_user_by_email, get_user_by_id, insert_us
 from src.database.session_factory import session_factory
 from src.database.models import User
 from src.routes.auth.token_middleware import auth_required
-from src.routes.schemas.users import SigninData, SignupData, SignupSigninReturn, UserData
-from src.libs.crypto import TOKEN_SECRET, hash_text, generate_jwt, validate_hash
+from src.routes.schemas.users import SigninData, SignupData, SignupSigninReturn
+from src.libs.crypto import get_token, hash_text, generate_jwt, validate_hash
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/signup", response_model=SignupSigninReturn)
 async def signup(signup_data: SignupData,
                  session: Session = Depends(session_factory),
-                 token_secret: str = TOKEN_SECRET):
+                 token_secret: str = Depends(get_token)):
 
     if user_exists(signup_data.email, session):
         raise HTTPException(
@@ -32,7 +32,7 @@ async def signup(signup_data: SignupData,
 async def login(
         signin_data: SigninData,
         session: Session = Depends(session_factory),
-        token_secret: str = TOKEN_SECRET):
+        token_secret: str = Depends(get_token)):
 
     user: User = get_user_by_email(signin_data.email, session)
 
@@ -43,7 +43,7 @@ async def login(
     return {"user_id": user.id, "jwt": generate_jwt(user.id, token_secret)}
 
 
-@router.get("/user/{user_id}", response_model=UserData)
+@router.get("/user/{user_id}")
 async def get_user(
         user_id: int,
         user: User = Depends(auth_required),

@@ -4,14 +4,14 @@ from sqlalchemy.orm import Session
 from src.database.crud.users import get_user_by_id
 from src.database.models import User
 from src.database.session_factory import session_factory
-from src.libs.crypto import TOKEN_SECRET, decode_jwt
+from src.libs.crypto import decode_jwt, get_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 async def auth_required(token: str = Depends(oauth2_scheme),
                         session: Session = Depends(session_factory),
-                        token_secret: str = TOKEN_SECRET) -> User:
+                        token_secret: str = Depends(get_token)) -> User:
     """Auth middleware for protected routes, throws an 401 error if bearer token is not present or
     invalid, if not, it returns the User object related to the token's user id"""
 

@@ -6,7 +6,8 @@ from src.database.crud.conversations import get_conversation_by_id, insert_conve
 from src.database.models import Conversation, User
 from src.database.session_factory import session_factory
 from src.routes.auth.token_middleware import auth_required
-from src.routes.schemas.conversations import ConversationData
+from src.routes.schemas.conversations import ConversationData, ConversationsResponse, \
+    ConversationResponse
 
 router = APIRouter()
 
@@ -53,7 +54,7 @@ async def validate_conversation(
 # Route
 
 
-@router.post("/conversations")
+@router.post("/conversations", response_model=ConversationsResponse)
 async def post_conversations(
         conversation: Conversation = Depends(validate_conversation),
         members: List[int] = Depends(
@@ -92,8 +93,9 @@ async def authorize_conversation_info(
 # Route
 
 
-@router.get("/conversation/{conversation_id}")
+@router.get("/conversation/{conversation_id}", response_model=ConversationResponse)
 async def get_conversation(conversation: Conversation = Depends(authorize_conversation_info)):
+    """Route to fetch a conversation's info, only for conversation participants"""
     return {
         "id": conversation.id,
         "title": conversation.title,

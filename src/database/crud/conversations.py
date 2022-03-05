@@ -19,11 +19,11 @@ def get_p2p_conversation(id_1: int, id_2: int, session: Session) -> Optional[Con
         .filter(Conversation.users.any(user_id=id_2)).filter_by(type=0).first()
 
 
-def insert_conversation(conv: Conversation, members_id: List[int], session: Session) -> None:
+def insert_conversation(conv: Conversation, user_ids: List[int], session: Session) -> None:
     """Insert a conversation into the db with their respective members"""
-    for member_id in members_id:
-        conv.users.append(UserAndConversation(user_id=member_id))
 
+    conv.users = list(map(lambda u_id: UserAndConversation(user_id=u_id),
+                          user_ids))
     session.add(conv)
     session.commit()
 

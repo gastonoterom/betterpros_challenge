@@ -9,6 +9,8 @@ import jwt
 
 TOKEN_SECRET = token_urlsafe(40)
 
+def get_token():
+    return TOKEN_SECRET
 
 def hash_text(text: str) -> str:
     """Hashes a given utf-8 string with the bcrypt algorithm."""

@@ -14,12 +14,12 @@ router = APIRouter()
 @router.post("/signup")
 async def signup(signup_data: SignupData, session: Session = Depends(session_factory)):
 
-    user = User(email=signup_data.email,
-                username=signup_data.username, hashed_pass=hash_text(signup_data.password))
-
-    if user_exists(user, session):
+    if user_exists(signup_data.email, session):
         raise HTTPException(
-            status_code=409, detail="username/email already registered")
+            status_code=409, detail="email already registered")
+
+    user = User(email=signup_data.email, username=signup_data.username,
+                hashed_pass=hash_text(signup_data.password))
 
     insert_user(user, session)
 

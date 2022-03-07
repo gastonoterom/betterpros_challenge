@@ -3,7 +3,7 @@ from test.mocks.database import get_mock_session
 from sqlalchemy.orm import Session
 from src.database.crud.users import insert_user
 from src.database.models import Conversation, User
-from src.database.crud.conversations import get_conversation_by_id, get_p2p_conversation, \
+from src.database.crud.conversations import add_conversation_members, get_conversation_by_id, get_p2p_conversation, \
     insert_conversation, is_conversation_member, p2p_convo_exists
 
 
@@ -22,8 +22,11 @@ class TestConversationsCRUD(unittest.TestCase):
 
     def test_conversations_crud(self):
         # Inserting a conversation
-        conversation = Conversation(type=0, title="p2p convo")
-        insert_conversation(conversation, [1, 2], self.session)
+        conversation = Conversation(
+            type=Conversation.ConversationType.P2P, title="p2p convo")
+
+        insert_conversation(add_conversation_members(conversation, [1, 2]),
+                            self.session)
 
         # Get existant conversation by id
         conversation_1 = get_conversation_by_id(1, self.session)
@@ -60,5 +63,7 @@ class TestConversationsCRUD(unittest.TestCase):
         conversation_1 = Conversation(type=1, title="group convo 1")
         conversation_2 = Conversation(type=1, title="group convo 2")
 
-        insert_conversation(conversation_1, [1, 2, 3], self.session)
-        insert_conversation(conversation_2, [1, 2, 3], self.session)
+        insert_conversation(add_conversation_members(
+            conversation_1, [1, 2, 3]), self.session)
+        insert_conversation(add_conversation_members(
+            conversation_2, [1, 2, 3]), self.session)

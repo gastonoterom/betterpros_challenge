@@ -58,7 +58,9 @@ async def get_user(
         raise HTTPException(
             status_code=404, detail="User not found")
 
-    convo_in_common = get_p2p_conversation(user.id, peer.id, session)
+    user_data_return = UserDataReturn(email=peer.email, username=peer.username)
 
-    return UserDataReturn(email=peer.email, username=peer.username,
-                          conversation_id=convo_in_common.id if convo_in_common else None)
+    if convo_in_common := get_p2p_conversation(user.id, peer.id, session):
+        user_data_return.conversation_id = convo_in_common.id
+
+    return user_data_return

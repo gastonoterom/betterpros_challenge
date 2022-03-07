@@ -2,12 +2,12 @@ from unittest import IsolatedAsyncioTestCase
 from test.mocks.database import get_mock_session
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from src.database.crud.conversations import insert_conversation
+from src.database.crud.conversations import add_conversation_members, insert_conversation
 from src.routes.conversations import authorize_conversation_info, get_conversation, \
-    handle_convo_members, parse_conversation, post_conversations, validate_conversation
+    handle_convo_members,  post_conversations, validate_conversation
 from src.routes.schemas.conversations import ConversationData
 from src.database.crud.users import insert_user
-from src.database.models import Conversation, User, UserAndConversation
+from src.database.models import Conversation, User
 from src.libs.crypto import hash_text
 
 
@@ -26,25 +26,24 @@ class TestUsers(IsolatedAsyncioTestCase):
         insert_user(User(id=3, username="beto", email="beto@mail.com",
                     hashed_pass=hash_text("password3")), self.session)
 
-        insert_conversation(Conversation(
-            id=1, type=0, title="secret chat"), [1, 2], self.session)
-        insert_conversation(Conversation(id=2, type=1, title="group chat"), [
-                            1, 2, 3], self.session)
+        conversation_1 = add_conversation_members(Conversation(
+            id=1, type=Conversation.ConversationType.P2P, title="secret chat"), [1, 2])
+        insert_conversation(conversation_1, self.session)
+
+        conversation_2 = add_conversation_members(
+            Conversation(id=2, type=Conversation.ConversationType.GROUP,
+                         title="group chat"), [1, 2, 3])
+
+        insert_conversation(conversation_2, self.session)
 
         self.token_secret = "test"
-
-    async def test_parse_conversation(self):
-
-        conversation = await parse_conversation(
-            ConversationData(title="testing", type=1, guests=[1, 2]))
-
-        self.assertTrue(isinstance(conversation, Conversation))
 
     async def test_handle_convo_members(self):
 
         # conversation owner: 1, guests: 2 & 3
 
-        conv_data = ConversationData(title="testing", type=1, guests=[2, 3])
+        conv_data = ConversationData(
+            title="testing", type=Conversation.ConversationType.GROUP, guests=[2, 3])
         user = User(id=1)
         members = await handle_convo_members(conv_data, user)
 
@@ -53,7 +52,8 @@ class TestUsers(IsolatedAsyncioTestCase):
 
         # conversation owner: 1, guests: 1 & 2
 
-        conv_data = ConversationData(title="testing", type=1, guests=[1, 2])
+        conv_data = ConversationData(
+            title="testing", type=Conversation.ConversationType.GROUP, guests=[1, 2])
         user = User(id=1)
         members = await handle_convo_members(conv_data, user)
 
@@ -62,7 +62,8 @@ class TestUsers(IsolatedAsyncioTestCase):
 
     async def test_validate_conversation(self):
         # Valid p2p conversation: 2 members & no previous conversation
-        conversation = Conversation(type=0, title="valid p2p")
+        conversation = Conversation(
+            type=Conversation.ConversationType.P2P, title="valid p2p")
         members = [1, 3]
 
         validated_conversation = await validate_conversation(
@@ -71,7 +72,8 @@ class TestUsers(IsolatedAsyncioTestCase):
         self.assertIsNotNone(validated_conversation)
 
         # Valid group conversation
-        group_conversation = Conversation(type=1, title="valid group")
+        group_conversation = Conversation(
+            type=Conversation.ConversationType.GROUP, title="valid group")
         members = [1, 2, 3]
 
         validated_group_conversation = await validate_conversation(
@@ -80,21 +82,27 @@ class TestUsers(IsolatedAsyncioTestCase):
         self.assertIsNotNone(validated_group_conversation)
 
         # Invalid p2p conversation: 2 members & previous conversation
-        duplicate_conversation = Conversation(type=0, title="duplicate p2p")
+        duplicate_conversation = Conversation(
+            type=Conversation.ConversationType.P2P, title="duplicate p2p")
         members = [2, 1]
 
         with self.assertRaises(HTTPException):
             await validate_conversation(duplicate_conversation, members, self.session)
 
         # Invalid p2p conversation: more than 2 members
-        big_conversation = Conversation(type=0, title="big p2p")
+        big_conversation = Conversation(
+            type=Conversation.ConversationType.P2P, title="big p2p")
         members = [2, 1, 3]
 
         with self.assertRaises(HTTPException):
             await validate_conversation(big_conversation, members, self.session)
 
     async def test_post_conversations(self):
-        conversation_data = await post_conversations(Conversation(type=0), [1, 3], self.session)
+        conversation = add_conversation_members(Conversation(
+            type=Conversation.ConversationType.P2P), [1, 3])
+
+        conversation_data = await post_conversations(conversation, self.session)
+
         self.assertTrue(conversation_data.conversation_id == 3)
 
     async def test_authorize_conversation_info(self):
@@ -112,9 +120,8 @@ class TestUsers(IsolatedAsyncioTestCase):
 
     async def test_get_conversation(self):
 
-        conversation = Conversation(
-            id=1, title="test", type=0, users=[UserAndConversation(user_id=1),
-                                               UserAndConversation(user_id=2)])
+        conversation = add_conversation_members(
+            Conversation(id=1, title="test", type=Conversation.ConversationType.P2P), [1, 2])
 
         conversation_data = await get_conversation(conversation)
 

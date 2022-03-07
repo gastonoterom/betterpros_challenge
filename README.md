@@ -7,7 +7,7 @@ Simple chat application written in Python.
 - Python 3.9
 - FastAPI
 - SQLAlchemy
-- SQLite
+- SQLite (in-memory)
 - JWT for token authentication
 
 ## Running the application

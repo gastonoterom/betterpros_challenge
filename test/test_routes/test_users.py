@@ -1,5 +1,5 @@
 from unittest import IsolatedAsyncioTestCase
-from src.database.crud.conversations import insert_conversation
+from src.database.crud.conversations import add_conversation_members, insert_conversation
 from test.mocks.database import get_mock_session
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -85,7 +85,9 @@ class TestUsers(IsolatedAsyncioTestCase):
         self.assertEqual(peer_data.conversation_id, None)
 
         # user requests the data of a peer (conv shared)
-        insert_conversation(Conversation(type=0), [1, 2], self.session)
+
+        insert_conversation(add_conversation_members(
+            Conversation(type=Conversation.ConversationType.P2P), [1, 2]), self.session)
 
         peer_data_2 = await get_user(2, myself, self.session)
 

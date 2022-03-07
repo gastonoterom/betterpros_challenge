@@ -16,6 +16,8 @@ Simple chat application written in Python.
 
 - Start the container: `docker run -d --name bp_challenge -p 8000:80 goterom/betterpros_challenge`
 
+The docker repository can be found [here](https://hub.docker.com/r/goterom/betterpros_challenge).
+
 ### Locally
 
 - Install the dependencies: `pip install -r requirements.txt`

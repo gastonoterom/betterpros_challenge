@@ -60,8 +60,11 @@ class TestConversationsCRUD(unittest.TestCase):
         self.assertFalse(is_conversation_member(3, 1, self.session))
 
         # Inserting two group conversation with the same users is allowed
-        conversation_1 = Conversation(type=1, title="group convo 1")
-        conversation_2 = Conversation(type=1, title="group convo 2")
+
+        conversation_1 = Conversation(type=Conversation.ConversationType.GROUP,
+                                      title="group convo 1")
+        conversation_2 = Conversation(type=Conversation.ConversationType.GROUP,
+                                      title="group convo 2")
 
         insert_conversation(add_conversation_members(
             conversation_1, [1, 2, 3]), self.session)

@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from src.database.models import Conversation,  UserAndConversation
+from src.database.models import Conversation,   UserAndConversation
 
 
 def p2p_convo_exists(id_1: int, id_2: int, session: Session) -> bool:
@@ -16,7 +16,8 @@ def get_p2p_conversation(id_1: int, id_2: int, session: Session) -> Optional[Con
         raise ValueError("Peer ids can't be the same")
 
     return session.query(Conversation).filter(Conversation.users.any(user_id=id_1)) \
-        .filter(Conversation.users.any(user_id=id_2)).filter_by(type=0).first()
+        .filter(Conversation.users.any(user_id=id_2)) \
+        .filter_by(type=Conversation.ConversationType.P2P).first()
 
 
 def insert_conversation(conv: Conversation, user_ids: List[int], session: Session) -> None:

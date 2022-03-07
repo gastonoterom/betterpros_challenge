@@ -95,7 +95,7 @@ class TestUsers(IsolatedAsyncioTestCase):
 
     async def test_post_conversations(self):
         conversation_data = await post_conversations(Conversation(type=0), [1, 3], self.session)
-        self.assertTrue(conversation_data["conversation_id"] == 3)
+        self.assertTrue(conversation_data.conversation_id == 3)
 
     async def test_authorize_conversation_info(self):
         # Test non existant conversation
@@ -118,7 +118,7 @@ class TestUsers(IsolatedAsyncioTestCase):
 
         conversation_data = await get_conversation(conversation)
 
-        self.assertEqual(conversation_data["id"], 1)
-        self.assertEqual(conversation_data["title"], "test")
-        self.assertEqual(conversation_data["type"], "p2p")
-        self.assertEqual(len(conversation_data["members"]), 2)
+        self.assertEqual(conversation_data.id, 1)
+        self.assertEqual(conversation_data.title, "test")
+        self.assertEqual(conversation_data.type, "p2p")
+        self.assertEqual(len(conversation_data.members), 2)

@@ -59,13 +59,13 @@ async def post_conversations(
         conversation: Conversation = Depends(validate_conversation),
         members: List[int] = Depends(
             handle_convo_members),
-        session: Session = Depends(session_factory)):
+        session: Session = Depends(session_factory)) -> ConversationsResponse:
 
     """Route for creating p2p or group conversations"""
 
     insert_conversation(conversation, members, session)
 
-    return {"conversation_id": conversation.id}
+    return ConversationsResponse(conversation_id=conversation.id)
 
 
 #####################
@@ -94,11 +94,12 @@ async def authorize_conversation_info(
 
 
 @router.get("/conversation/{conversation_id}", response_model=ConversationResponse)
-async def get_conversation(conversation: Conversation = Depends(authorize_conversation_info)):
+async def get_conversation(
+        conversation: Conversation = Depends(authorize_conversation_info)) -> ConversationResponse:
     """Route to fetch a conversation's info, only for conversation participants"""
-    return {
-        "id": conversation.id,
-        "title": conversation.title,
-        "type": "p2p" if conversation.type == 0 else "group",
-        "members": list(map(lambda user: user.user_id, conversation.users))
-    }
+
+    return ConversationResponse(id=conversation.id,
+                                title=conversation.title,
+                                type="p2p" if
+                                conversation.type == Conversation.ConversationType.P2P else "group",
+                                members=list(map(lambda user: user.user_id, conversation.users)))

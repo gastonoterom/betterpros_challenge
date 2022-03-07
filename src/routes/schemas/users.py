@@ -33,7 +33,7 @@ class SigninData(BaseModel):
 
 
 class SignupSigninReturn(BaseModel):
-    user_id: str
+    user_id: int
     jwt: str
 
     class Config:
@@ -41,5 +41,20 @@ class SignupSigninReturn(BaseModel):
             "example": {
                 "user_id": "1",
                 "jwt": "eyJ0eXAiOiJKV1Qi...",
+            }
+        }
+
+
+class UserDataReturn(BaseModel):
+    email: str
+    username: str
+    conversation_id: Optional[int]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "peer@mail.com",
+                "username": "peer_142",
+                "conversation_id": 45
             }
         }

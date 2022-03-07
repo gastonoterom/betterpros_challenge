@@ -1,5 +1,6 @@
+from enum import IntEnum
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from src.database.db_engine import Base, engine
 
 
@@ -28,6 +29,11 @@ class Conversation(Base):
 
     __tablename__ = 'conversation'
 
+    # Type ENUM
+    class ConversationType(IntEnum):
+        P2P = 0
+        GROUP = 1
+
     # Columns
     id = Column(Integer, primary_key=True)
     title = Column(String)
@@ -36,6 +42,13 @@ class Conversation(Base):
     # Relations
     users = relationship("UserAndConversation",
                          back_populates="conversation")
+
+    # Validations
+    @validates("type")
+    def validate_type(self, _, conversation_type):
+        if conversation_type not in [self.ConversationType.P2P, self.ConversationType.GROUP]:
+            raise ValueError("ERROR: invalid conversation type")
+        return conversation_type
 
     def __repr__(self):
         return f"(Conversation id={self.id},title={self.title},type={self.type})"

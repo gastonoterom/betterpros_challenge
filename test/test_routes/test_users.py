@@ -30,11 +30,11 @@ class TestUsers(IsolatedAsyncioTestCase):
             email="beto@mail.com", username="el_beto", password="beto123")
         signup_response = await signup(signup_data, self.session, self.token_secret)
 
-        self.assertEqual(signup_response["user_id"], 3)
+        self.assertEqual(signup_response.user_id, 3)
 
-        self.assertIsNotNone(signup_response["jwt"])
+        self.assertIsNotNone(signup_response.jwt)
         self.assertIsNotNone(
-            decode_jwt(signup_response["jwt"], self.token_secret))
+            decode_jwt(signup_response.jwt, self.token_secret))
 
         # Bad signup: email already taken
         bad_signup_data = SignupData(
@@ -49,10 +49,10 @@ class TestUsers(IsolatedAsyncioTestCase):
             email="mail@gastonotero.com", password="password")
         login_response = await login(login_data, self.session, self.token_secret)
 
-        self.assertEqual(login_response["user_id"], 1)
-        self.assertIsNotNone(login_response["jwt"])
+        self.assertEqual(login_response.user_id, 1)
+        self.assertIsNotNone(login_response.jwt)
         self.assertIsNotNone(decode_jwt(
-            login_response["jwt"], self.token_secret))
+            login_response.jwt, self.token_secret))
 
         # Bad signin: bad email
         bad_email = SigninData(
@@ -74,25 +74,24 @@ class TestUsers(IsolatedAsyncioTestCase):
         # user requests their data
         my_data = await get_user(1, myself, self.session)
 
-        self.assertEqual(my_data["email"], "mail@gastonotero.com")
-        self.assertEqual(my_data["username"], "g4st0n")
+        self.assertEqual(my_data.email, "mail@gastonotero.com")
+        self.assertEqual(my_data.username, "g4st0n")
 
         # user requests the data of a peer (no conv shared)
         peer_data = await get_user(2, myself, self.session)
 
-        self.assertEqual(peer_data["email"], "marina@mail.com")
-        self.assertEqual(peer_data["username"], "marina")
-        self.assertEqual(len(peer_data.keys()), 2)
+        self.assertEqual(peer_data.email, "marina@mail.com")
+        self.assertEqual(peer_data.username, "marina")
+        self.assertEqual(peer_data.conversation_id, None)
 
         # user requests the data of a peer (conv shared)
         insert_conversation(Conversation(type=0), [1, 2], self.session)
 
         peer_data_2 = await get_user(2, myself, self.session)
 
-        self.assertEqual(peer_data_2["email"], "marina@mail.com")
-        self.assertEqual(peer_data_2["username"], "marina")
-        self.assertEqual(peer_data_2["conversation_id"], 1)
-        self.assertEqual(len(peer_data_2.keys()), 3)
+        self.assertEqual(peer_data_2.email, "marina@mail.com")
+        self.assertEqual(peer_data_2.username, "marina")
+        self.assertEqual(peer_data_2.conversation_id, 1)
 
         # user requests data of a non existant peer
         with self.assertRaises(HTTPException):
